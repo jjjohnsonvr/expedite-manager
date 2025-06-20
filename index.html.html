@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expedite Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .card h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #34495e;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .form-group input[type="checkbox"]:checked + span {
+            color: #3498db;
+            font-weight: 600;
+        }
+
+        .form-group label:has(input[type="checkbox"]:checked) {
+            background: #e3f2fd !important;
+            border-color: #3498db !important;
+            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.2);
+        }
+
+        .form-group label:hover {
+            background: #f0f8ff !important;
+            border-color: #90caf9 !important;
+        }
+
+        .form-group small {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+            display: block;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60 0%, #219a52 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+        }
+
+        .requests-list {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .request-item {
+            background: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .request-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .request-item.approved {
+            border-left-color: #27ae60;
+        }
+
+        .request-item.denied {
+            border-left-color: #e74c3c;
+        }
+
+        .request-item.pending {
+            border-left-color: #f39c12;
+        }
+
+        .request-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .request-id {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .request-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-approved {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-denied {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .limits-display {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .limit-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .limit-item:last-child {
+            border-bottom: none;
+        }
+
+        .limit-bar {
+            width: 100px;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .limit-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #27ae60 0%, #2ecc71 100%);
+            transition: width 0.3s ease;
+        }
+
+        .limit-fill.warning {
+            background: linear-gradient(90deg, #f39c12 0%, #e67e22 100%);
+        }
+
+        .limit-fill.danger {
+            background: linear-gradient(90deg, #e74c3c 0%, #c0392b 100%);
+        }
+
+        .chat-interface {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .chat-messages {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 80%;
+        }
+
+        .message.user {
+            background: #3498db;
+            color: white;
+            margin-left: auto;
+        }
+
+        .message.ai {
+            background: white;
+            border: 1px solid #dee2e6;
+        }
+
+        .chat-input {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+        }
+
+        #paymentAmountGroup {
+            display: none;
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #27ae60;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Expedite Management System</h1>
+            <p>AI-Powered Manufacturing Request Management</p>
+        </div>
+
+        <div class="main-content">
+            <div class="card">
+                <h2>📋 Submit Expedite Request</h2>
+                <form id="expediteForm">
+                    <div class="form-group">
+                        <label for="orderNumber">Order Number</label>
+                        <input type="text" id="orderNumber" required placeholder="e.g., ORD-12345">
+                    </div>
+                    <div class="form-group">
+                        <label for="expediteType">Expedite Type</label>
+                        <select id="expediteType" required>
+                            <option value="">Select Type</option>
+                            <option value="unpaid">Unpaid (Standard)</option>
+                            <option value="paid">Paid (Premium)</option>
+                        </select>
+                        <small>Unpaid expedites are subject to individual limits. Paid expedites are unlimited but tracked. Only select the production types that will be expedited.</small>
+                    </div>
+                    <div class="form-group" id="paymentAmountGroup">
+                        <label for="paymentAmount">💰 Customer Payment Amount ($)</label>
+                        <input type="number" id="paymentAmount" step="0.01" min="0" placeholder="0.00">
+                        <small><strong>Enter the amount the customer is paying for this expedite service</strong></small>
+                    </div>
+                    <div class="form-group">
+                        <label for="departments">Departments</label>
+                        <div id="departments" style="border: 2px solid #ecf0f1; border-radius: 8px; padding: 20px; background: #f8f9fa;">
+                            <div style="display: flex; flex-direction: column; gap: 12px;">
+                                <label style="display: flex; align-items: center; font-weight: normal; margin: 0; cursor: pointer; padding: 12px; background: white; border-radius: 6px; border: 1px solid #dee2e6; transition: all 0.2s ease;">
+                                    <input type="checkbox" name="department" value="wood" style="margin: 0; width: 18px; height: 18px; margin-right: 15px;">
+                                    <span style="font-size: 16px;">Wood</span>
+                                </label>
+                                <label style="display: flex; align-items: center; font-weight: normal; margin: 0; cursor: pointer; padding: 12px; background: white; border-radius: 6px; border: 1px solid #dee2e6; transition: all 0.2s ease;">
+                                    <input type="checkbox" name="department" value="metal" style="margin: 0; width: 18px; height: 18px; margin-right: 15px;">
+                                    <span style="font-size: 16px;">Metal</span>
+                                </label>
+                                <label style="display: flex; align-items: center; font-weight: normal; margin: 0; cursor: pointer; padding: 12px; background: white; border-radius: 6px; border: 1px solid #dee2e6; transition: all 0.2s ease;">
+                                    <input type="checkbox" name="department" value="glass" style="margin: 0; width: 18px; height: 18px; margin-right: 15px;">
+                                    <span style="font-size: 16px;">Glass</span>
+                                </label>
+                                <label style="display: flex; align-items: center; font-weight: normal; margin: 0; cursor: pointer; padding: 12px; background: white; border-radius: 6px; border: 1px solid #dee2e6; transition: all 0.2s ease;">
+                                    <input type="checkbox" name="department" value="flight" style="margin: 0; width: 18px; height: 18px; margin-right: 15px;">
+                                    <span style="font-size: 16px;">Flight</span>
+                                </label>
+                                <label style="display: flex; align-items: center; font-weight: normal; margin: 0; cursor: pointer; padding: 12px; background: white; border-radius: 6px; border: 1px solid #dee2e6; transition: all 0.2s ease;">
+                                    <input type="checkbox" name="department" value="fabrication" style="margin: 0; width: 18px; height: 18px; margin-right: 15px;">
+                                    <span style="font-size: 16px;">Fabrication</span>
+                                </label>
+                                <label style="display: flex; align-items: center; font-weight: normal; margin: 0; cursor: pointer; padding: 12px; background: white; border-radius: 6px; border: 1px solid #dee2e6; transition: all 0.2s ease;">
+                                    <input type="checkbox" name="department" value="hpc" style="margin: 0; width: 18px; height: 18px; margin-right: 15px;">
+                                    <span style="font-size: 16px;">HPC</span>
+                                </label>
+                                <label style="display: flex; align-items: center; font-weight: normal; margin: 0; cursor: pointer; padding: 12px; background: white; border-radius: 6px; border: 1px solid #dee2e6; transition: all 0.2s ease;">
+                                    <input type="checkbox" name="department" value="shipping" style="margin: 0; width: 18px; height: 18px; margin-right: 15px;">
+                                    <span style="font-size: 16px;">Shipping</span>
+                                </label>
+                                <label style="display: flex; align-items: center; font-weight: normal; margin: 0; cursor: pointer; padding: 12px; background: white; border-radius: 6px; border: 1px solid #dee2e6; transition: all 0.2s ease;">
+                                    <input type="checkbox" name="department" value="cnc" style="margin: 0; width: 18px; height: 18px; margin-right: 15px;">
+                                    <span style="font-size: 16px;">CNC</span>
+                                </label>
+                            </div>
+                        </div>
+                        <small style="color: #666; font-size: 0.9em; margin-top: 5px; display: block;">
+                            Select all departments that need this expedite
+                        </small>
+                    </div>
+                    <div class="form-group">
+                        <label for="justification">Justification</label>
+                        <textarea id="justification" rows="3" required placeholder="Explain why this expedite is needed..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="requestedOnSiteDate">Requested On-Site Date</label>
+                        <input type="date" id="requestedOnSiteDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="shippingMethod">Shipping Method</label>
+                        <select id="shippingMethod" required>
+                            <option value="">Select Shipping Method</option>
+                            <option value="ups-ground">UPS Ground</option>
+                            <option value="ups-nda">UPS NDA</option>
+                            <option value="r&l">R&L</option>
+                            <option value="vrd">VRD</option>
+                            <option value="customer-pickup">Customer Pickup</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="requestedBy">Requested By (Name)</label>
+                        <input type="text" id="requestedBy" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="requesterEmail">Requester Email</label>
+                        <input type="email" id="requesterEmail" required placeholder="name@company.com">
+                    </div>
+                    <button type="submit" class="btn">Submit Request</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>📊 Expedite Limits & Usage</h2>
+                <div class="limits-display" id="limitsDisplay">
+                    <!-- Limits will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="card">
+                <h2>📋 Pending Requests</h2>
+                <div class="requests-list" id="pendingRequests">
+                    <!-- Pending requests will appear here -->
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>✅ Recent Decisions</h2>
+                <div style="margin-bottom: 15px;">
+                    <button class="btn btn-warning" onclick="showShippedRequests()" style="padding: 8px 15px; font-size: 0.9em;">🚚 View Shipped (0)</button>
+                </div>
+                <div class="requests-list" id="recentDecisions">
+                    <!-- Recent decisions will appear here -->
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-interface">
+            <h2>🤖 AI Assistant</h2>
+            <div id="aiButtons" style="margin-bottom: 15px;">
+                <button class="btn btn-warning" onclick="configureChatWebhook()" style="padding: 8px 15px; font-size: 0.9em; opacity: 0.6;">💬 Configure Google Chat (Login Required)</button>
+                <button class="btn" onclick="configureEmailNotifications()" style="padding: 8px 15px; font-size: 0.9em; background: #2ecc71; color: white; opacity: 0.6; margin-left: 10px;">📧 Configure Email (Login Required)</button>
+                <button class="btn" onclick="promptForAuthentication()" style="padding: 8px 15px; font-size: 0.9em; background: #3498db; color: white; margin-left: 10px;">🔑 Manager Login</button>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="message ai">
+                    <strong>AI Assistant:</strong> Hello! I'm here to help you manage expedite requests. I can analyze patterns, suggest approvals/denials based on limits, and provide insights about paid vs unpaid expedites. How can I assist you today?
+                </div>
+            </div>
+            <div class="chat-input">
+                <input type="text" id="chatInput" placeholder="Ask me about expedite patterns, limits, or request analysis...">
+                <button class="btn" onclick="sendChatMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global data storage with persistence
+        let expediteData = {
+            requests: [],
+            shippedRequests: [],
+            chatWebhookUrl: 'https://chat.googleapis.com/v1/spaces/YOUR_SPACE_ID/messages?key=YOUR_KEY&token=YOUR_TOKEN',
+            emailConfig: {
+                enabled: false,
+                smtpServer: 'smtp.company.com',
+                smtpPort: 587,
+                fromEmail: 'expedite-system@company.com',
+                fromName: 'Expedite Management System'
+            },
+            authorizedUsers: {
+                'manager': { password: 'ExpediteManager2025!', name: 'Production Manager', email: 'manager@company.com' },
+                'director': { password: 'Director2025!', name: 'Production Director', email: 'director@company.com' },
+                'plantmgr': { password: 'PlantMgr2025!', name: 'Plant Manager', email: 'plant.manager@company.com' },
+                'operations': { password: 'Operations2025!', name: 'Operations Lead', email: 'operations@company.com' },
+                'admin': { password: 'ExpediteAdmin2025!', name: 'System Administrator', email: 'admin@company.com' }
+            },
+            currentUser: null,
+            limits: {
+                wood: { monthly: 8, quarterly: 20, yearly: 80 },
+                metal: { monthly: 12, quarterly: 30, yearly: 120 },
+                glass: { monthly: 6, quarterly: 15, yearly: 60 },
+                flight: { monthly: 4, quarterly: 10, yearly: 40 },
+                fabrication: { monthly: 15, quarterly: 40, yearly: 150 },
+                hpc: { monthly: 10, quarterly: 25, yearly: 100 },
+                shipping: { monthly: 20, quarterly: 50, yearly: 200 },
+                cnc: { monthly: 10, quarterly: 25, yearly: 100 }
+            },
+            usage: {
+                wood: { monthly: 0, quarterly: 0, yearly: 0 },
+                metal: { monthly: 0, quarterly: 0, yearly: 0 },
+                glass: { monthly: 0, quarterly: 0, yearly: 0 },
+                flight: { monthly: 0, quarterly: 0, yearly: 0 },
+                fabrication: { monthly: 0, quarterly: 0, yearly: 0 },
+                hpc: { monthly: 0, quarterly: 0, yearly: 0 },
+                shipping: { monthly: 0, quarterly: 0, yearly: 0 },
+                cnc: { monthly: 0, quarterly: 0, yearly: 0 }
+            },
+            submitterLimits: {
+                unpaid: {
+                    monthly: 3,
+                    quarterly: 8,
+                    yearly: 30
+                }
+            },
+            submitterUsage: {},
+            departmentTracking: {
+                wood: { paid: { monthly: 0, quarterly: 0, yearly: 0 }, unpaid: { monthly: 0, quarterly: 0, yearly: 0 } },
+                metal: { paid: { monthly: 0, quarterly: 0, yearly: 0 }, unpaid: { monthly: 0, quarterly: 0, yearly: 0 } },
+                glass: { paid: { monthly: 0, quarterly: 0, yearly: 0 }, unpaid: { monthly: 0, quarterly: 0, yearly: 0 } },
+                flight: { paid: { monthly: 0, quarterly: 0, yearly: 0 }, unpaid: { monthly: 0, quarterly: 0, yearly: 0 } },
+                fabrication: { paid: { monthly: 0, quarterly: 0, yearly: 0 }, unpaid: { monthly: 0, quarterly: 0, yearly: 0 } },
+                hpc: { paid: { monthly: 0, quarterly: 0, yearly: 0 }, unpaid: { monthly: 0, quarterly: 0, yearly: 0 } },
+                shipping: { paid: { monthly: 0, quarterly: 0, yearly: 0 }, unpaid: { monthly: 0, quarterly: 0, yearly: 0 } },
+                cnc: { paid: { monthly: 0, quarterly: 0, yearly: 0 }, unpaid: { monthly: 0, quarterly: 0, yearly: 0 } }
+            },
+            lastSaved: null
+        };
+
+        // Data persistence functions
+        function saveData() {
+            try {
+                expediteData.lastSaved = new Date().toISOString();
+                localStorage.setItem('expediteData', JSON.stringify(expediteData));
+            } catch (error) {
+                console.error('Failed to save data:', error);
+            }
+        }
+
+        function loadData() {
+            try {
+                const saved = localStorage.getItem('expediteData');
+                if (saved) {
+                    const parsedData = JSON.parse(saved);
+                    // Merge saved data with defaults to handle new properties
+                    expediteData = { ...expediteData, ...parsedData };
+                    console.log('Data loaded successfully. Last saved:', expediteData.lastSaved);
+                    return true;
+                }
+            } catch (error) {
+                console.error('Failed to load data:', error);
+            }
+            return false;
+        }
+
+        function exportData() {
+            const dataStr = JSON.stringify(expediteData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `expedite_data_${new Date().toISOString().slice(0, 10)}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const importedData = JSON.parse(e.target.result);
+                        expediteData = { ...expediteData, ...importedData };
+                        saveData();
+                        updateLimitsDisplay();
+                        updateRequestsDisplay();
+                        addChatMessage('ai', 'Data imported successfully!');
+                    } catch (error) {
+                        alert('Error importing data: ' + error.message);
+                    }
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        // Payment field toggle function
+        document.getElementById('expediteType').addEventListener('change', function() {
+            const paymentGroup = document.getElementById('paymentAmountGroup');
+            const paymentField = document.getElementById('paymentAmount');
+            
+            if (this.value === 'paid') {
+                paymentGroup.style.display = 'block';
+                paymentField.required = true;
+            } else {
+                paymentGroup.style.display = 'none';
+                paymentField.required = false;
+                paymentField.value = '';
+            }
+        });
+
+        // Authentication and access control functions
+        function promptForAuthentication() {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+                background: rgba(0,0,0,0.7); z-index: 1000; display: flex; 
+                justify-content: center; align-items: center;
+            `;
+            
+            const loginForm = document.createElement('div');
+            loginForm.style.cssText = `
+                background: white; border-radius: 15px; padding: 30px; 
+                max-width: 400px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            `;
+            
+            loginForm.innerHTML = `
+                <div style="text-align: center; margin-bottom: 25px;">
+                    <h3 style="margin: 0; color: #2c3e50;">🔐 Manager Authentication</h3>
+                    <p style="color: #666; margin: 10px 0 0 0;">Enter your credentials to approve expedite requests</p>
+                </div>
+                <form id="loginForm" style="display: flex; flex-direction: column; gap: 15px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Username:</label>
+                        <input type="text" id="loginUsername" required style="width: 100%; padding: 10px; border: 2px solid #ecf0f1; border-radius: 5px; font-size: 16px;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Password:</label>
+                        <input type="password" id="loginPassword" required style="width: 100%; padding: 10px; border: 2px solid #ecf0f1; border-radius: 5px; font-size: 16px;">
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button type="button" onclick="handleLogin()" style="flex: 1; padding: 12px; background: #3498db; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer;">Login</button>
+                        <button type="button" onclick="this.closest('.modal').remove()" style="flex: 1; padding: 12px; background: #95a5a6; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer;">Cancel</button>
+                    </div>
+                </form>
+                <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px; font-size: 14px;">
+                    <strong>Demo Credentials:</strong><br>
+                    Username: <code>manager</code> Password: <code>ExpediteManager2025!</code><br>
+                    Username: <code>admin</code> Password: <code>ExpediteAdmin2025!</code>
+                </div>
+            `;
+            
+            modal.className = 'modal';
+            modal.appendChild(loginForm);
+            document.body.appendChild(modal);
+            
+            document.getElementById('loginUsername').focus();
+            
+            window.handleLogin = function() {
+                const username = document.getElementById('loginUsername').value.trim().toLowerCase();
+                const password = document.getElementById('loginPassword').value;
+                
+                if (expediteData.authorizedUsers[username] && expediteData.authorizedUsers[username].password === password) {
+                    expediteData.currentUser = {
+                        username: username,
+                        name: expediteData.authorizedUsers[username].name,
+                        email: expediteData.authorizedUsers[username].email
+                    };
+                    updateAuthenticationStatus();
+                    updateRequestsDisplay();
+                    modal.remove();
+                    addChatMessage('ai', `Welcome ${expediteData.currentUser.name}! You now have full approval permissions.`);
+                } else {
+                    alert('Invalid username or password. Please try again.');
+                    document.getElementById('loginPassword').value = '';
+                    document.getElementById('loginPassword').focus();
+                }
+            };
+            
+            document.getElementById('loginPassword').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    handleLogin();
+                }
+            });
+            
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.remove();
+            });
+        }
+
+        function updateAuthenticationStatus() {
+            const aiButtons = document.getElementById('aiButtons');
+            
+            if (expediteData.currentUser) {
+                aiButtons.innerHTML = `
+                    <span style="color: #27ae60; font-weight: 600;">🔐 Authenticated: ${expediteData.currentUser.name}</span>
+                    <button onclick="logout()" style="background: #e74c3c; color: white; border: none; border-radius: 5px; padding: 5px 10px; margin-left: 10px; cursor: pointer;">Logout</button>
+                    <button class="btn btn-warning" onclick="configureChatWebhook()" style="padding: 8px 15px; font-size: 0.9em; margin-left: 10px;">💬 Configure Google Chat</button>
+                    <button class="btn" onclick="configureEmailNotifications()" style="padding: 8px 15px; font-size: 0.9em; background: #2ecc71; color: white; margin-left: 10px;">📧 Configure Email</button>
+                `;
+            } else {
+                aiButtons.innerHTML = `
+                    <button class="btn btn-warning" onclick="configureChatWebhook()" style="padding: 8px 15px; font-size: 0.9em; opacity: 0.6;">💬 Configure Google Chat (Login Required)</button>
+                    <button class="btn" onclick="configureEmailNotifications()" style="padding: 8px 15px; font-size: 0.9em; background: #2ecc71; color: white; opacity: 0.6; margin-left: 10px;">📧 Configure Email (Login Required)</button>
+                    <button class="btn" onclick="promptForAuthentication()" style="padding: 8px 15px; font-size: 0.9em; background: #3498db; color: white; margin-left: 10px;">🔑 Manager Login</button>
+                `;
+            }
+        }
+
+        function logout() {
+            expediteData.currentUser = null;
+            updateAuthenticationStatus();
+            updateRequestsDisplay();
+            addChatMessage('ai', 'Logged out successfully. You can still submit requests but cannot approve them.');
+        }
+
+        function hasApprovalPermissions() {
+            return expediteData.currentUser !== null;
+        }
+
+        function requiresAuthentication(action) {
+            if (!hasApprovalPermissions()) {
+                promptForAuthentication();
+                return false;
+            }
+            return true;
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load saved data first
+            const dataLoaded = loadData();
+            if (dataLoaded) {
+                addChatMessage('ai', `Welcome back! Data restored from ${new Date(expediteData.lastSaved).toLocaleDateString()}.`);
+            }
+            
+            updateLimitsDisplay();
+            updateRequestsDisplay();
+            
+            document.getElementById('expediteForm').addEventListener('submit', handleFormSubmit);
+            document.getElementById('chatInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendChatMessage();
+                }
+            });
+
+            // Auto-save every 30 seconds
+            setInterval(saveData, 30000);
+            
+            // Save data when page unloads
+            window.addEventListener('beforeunload', saveData);
+        });
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            
+            // Get selected departments
+            const selectedDepartments = Array.from(document.querySelectorAll('input[name="department"]:checked'))
+                .map(checkbox => checkbox.value);
+            
+            if (selectedDepartments.length === 0) {
+                alert('Please select at least one department');
+                return;
+            }
+            
+            // Generate a unique ID based on timestamp and random number
+            const timestamp = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+            const randomNum = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+            const generatedId = `EXP-${timestamp}-${randomNum}`;
+            
+            const formData = {
+                id: generatedId,
+                orderNumber: document.getElementById('orderNumber').value,
+                expediteType: document.getElementById('expediteType').value,
+                departments: selectedDepartments,
+                justification: document.getElementById('justification').value,
+                requestedOnSiteDate: document.getElementById('requestedOnSiteDate').value,
+                shippingMethod: document.getElementById('shippingMethod').value,
+                requestedBy: document.getElementById('requestedBy').value,
+                requesterEmail: document.getElementById('requesterEmail').value,
+                paymentAmount: document.getElementById('expediteType').value === 'paid' ? 
+                    parseFloat(document.getElementById('paymentAmount').value) || 0 : null,
+                timestamp: new Date(),
+                status: 'pending'
+            };
+            
+            // AI-powered analysis
+            const analysis = analyzeRequest(formData);
+            formData.aiAnalysis = analysis;
+            
+            expediteData.requests.push(formData);
+            
+            // Save data after adding request
+            saveData();
+            
+            // Clear form
+            document.getElementById('expediteForm').reset();
+            document.getElementById('paymentAmountGroup').style.display = 'none';
+            
+            // Update displays
+            updateRequestsDisplay();
+            
+            // Add AI message about the request
+            const paymentInfo = formData.expediteType === 'paid' && formData.paymentAmount ? 
+                ` Customer payment: ${formData.paymentAmount.toFixed(2)}.` : '';
+            addChatMessage('ai', `New ${formData.expediteType} request received: ${formData.id} for order ${formData.orderNumber}. Departments: ${formData.departments.join(', ')}. On-site date: ${formData.requestedOnSiteDate}. Shipping: ${formData.shippingMethod}.${paymentInfo} ${analysis.recommendation}. Reasoning: ${analysis.reasoning}`);
+            
+            alert(`Request ${formData.id} submitted successfully for departments: ${selectedDepartments.join(', ')}`);
+        }
+
+        function analyzeRequest(request) {
+            const submitterEmail = request.requesterEmail;
+            
+            // Initialize submitter usage if not exists
+            if (!expediteData.submitterUsage[submitterEmail]) {
+                expediteData.submitterUsage[submitterEmail] = {
+                    paid: { monthly: 0, quarterly: 0, yearly: 0 },
+                    unpaid: { monthly: 0, quarterly: 0, yearly: 0 }
+                };
+            }
+            
+            const submitterUsage = expediteData.submitterUsage[submitterEmail][request.expediteType];
+            
+            let score = 0;
+            let reasoning = [];
+            
+            // Check department limits (only for unpaid)
+            let withinDeptLimits = true;
+            if (request.expediteType === 'unpaid') {
+                for (const dept of request.departments) {
+                    const limits = expediteData.limits[dept];
+                    const usage = expediteData.usage[dept];
+                    
+                    if (usage.monthly >= limits.monthly) {
+                        withinDeptLimits = false;
+                        reasoning.push(`${dept} department monthly limit exceeded`);
+                    }
+                    if (usage.quarterly >= limits.quarterly) {
+                        withinDeptLimits = false;
+                        reasoning.push(`${dept} department quarterly limit exceeded`);
+                    }
+                }
+            }
+            
+            // Check submitter limits (only for unpaid)
+            let withinSubmitterLimits = true;
+            if (request.expediteType === 'unpaid') {
+                if (submitterUsage.monthly >= expediteData.submitterLimits.unpaid.monthly) {
+                    withinSubmitterLimits = false;
+                    reasoning.push('Individual monthly limit exceeded for unpaid expedites');
+                }
+                if (submitterUsage.quarterly >= expediteData.submitterLimits.unpaid.quarterly) {
+                    withinSubmitterLimits = false;
+                    reasoning.push('Individual quarterly limit exceeded for unpaid expedites');
+                }
+            }
+            
+            // Paid expedites bypass limits
+            if (request.expediteType === 'paid') {
+                withinDeptLimits = true;
+                withinSubmitterLimits = true;
+                reasoning.push('Paid expedite - no limits applied');
+            }
+            
+            // Justification length scoring
+            if (request.justification.length > 100) score += 2;
+            else if (request.justification.length > 50) score += 1;
+            
+            // Order number format check (basic validation)
+            if (request.orderNumber && request.orderNumber.length > 3) score += 1;
+            
+            // Multiple departments may indicate more complex/important request
+            if (request.departments.length > 1) score += 1;
+            
+            // Urgent shipping methods get higher priority
+            const urgentShipping = ['ups-nda'];
+            if (urgentShipping.includes(request.shippingMethod)) score += 1;
+            
+            // Check if requested date is soon (within 7 days)
+            const requestedDate = new Date(request.requestedOnSiteDate);
+            const daysDifference = (requestedDate - new Date()) / (1000 * 60 * 60 * 24);
+            if (daysDifference <= 7 && daysDifference > 0) score += 2;
+            else if (daysDifference <= 14 && daysDifference > 0) score += 1;
+            
+            let recommendation;
+            if (request.expediteType === 'paid') {
+                recommendation = 'RECOMMEND APPROVAL (PAID)';
+                reasoning.push('Paid expedite - should be approved if justification is valid');
+            } else if ((!withinDeptLimits || !withinSubmitterLimits)) {
+                recommendation = 'RECOMMEND DENIAL';
+                reasoning.push('Limits exceeded');
+            } else if (withinDeptLimits && withinSubmitterLimits && score >= 2) {
+                recommendation = 'RECOMMEND APPROVAL';
+                reasoning.push('Within all limits and adequate justification');
+            } else {
+                recommendation = 'REVIEW REQUIRED';
+                reasoning.push('Weak justification or other concerns - manual review needed');
+            }
+            
+            return {
+                score: score,
+                recommendation: recommendation,
+                reasoning: reasoning.join(', '),
+                withinDeptLimits: withinDeptLimits,
+                withinSubmitterLimits: withinSubmitterLimits,
+                isPaid: request.expediteType === 'paid'
+            };
+        }
+
+        function approveRequest(requestId) {
+            if (!requiresAuthentication('approve')) {
+                return;
+            }
+            
+            const request = expediteData.requests.find(r => r.id === requestId);
+            if (request) {
+                request.status = 'approved';
+                request.decidedAt = new Date();
+                request.approvedBy = expediteData.currentUser.name;
+                
+                // Update department usage for each selected department (only unpaid count against limits)
+                if (request.expediteType === 'unpaid') {
+                    request.departments.forEach(dept => {
+                        expediteData.usage[dept].monthly++;
+                        expediteData.usage[dept].quarterly++;
+                        expediteData.usage[dept].yearly++;
+                    });
+                }
+                
+                // Update detailed tracking for both paid and unpaid for each department
+                request.departments.forEach(dept => {
+                    expediteData.departmentTracking[dept][request.expediteType].monthly++;
+                    expediteData.departmentTracking[dept][request.expediteType].quarterly++;
+                    expediteData.departmentTracking[dept][request.expediteType].yearly++;
+                });
+                
+                // Update submitter usage
+                const submitterEmail = request.requesterEmail;
+                if (!expediteData.submitterUsage[submitterEmail]) {
+                    expediteData.submitterUsage[submitterEmail] = {
+                        paid: { monthly: 0, quarterly: 0, yearly: 0 },
+                        unpaid: { monthly: 0, quarterly: 0, yearly: 0 }
+                    };
+                }
+                expediteData.submitterUsage[submitterEmail][request.expediteType].monthly++;
+                expediteData.submitterUsage[submitterEmail][request.expediteType].quarterly++;
+                expediteData.submitterUsage[submitterEmail][request.expediteType].yearly++;
+                
+                updateRequestsDisplay();
+                updateLimitsDisplay();
+                
+                // Save data after approval
+                saveData();
+                
+                const limitNote = request.expediteType === 'paid' ? 'Paid expedite - no limits affected' : 'Unpaid expedite - limits updated';
+                addChatMessage('ai', `Request ${requestId} (${request.expediteType}) approved by ${expediteData.currentUser.name} for departments: ${request.departments.join(', ')}. ${limitNote}.`);
+            }
+        }
+
+        function denyRequest(requestId) {
+            if (!requiresAuthentication('deny')) {
+                return;
+            }
+            
+            const request = expediteData.requests.find(r => r.id === requestId);
+            if (request) {
+                request.status = 'denied';
+                request.decidedAt = new Date();
+                request.deniedBy = expediteData.currentUser.name;
+                updateRequestsDisplay();
+                saveData(); // Save after denial
+                addChatMessage('ai', `Request ${requestId} (${request.expediteType}) for departments ${request.departments.join(', ')} denied by ${expediteData.currentUser.name}.`);
+            }
+        }
+
+        function markAsShipped(requestId) {
+            if (!requiresAuthentication('ship')) {
+                return;
+            }
+            
+            const request = expediteData.requests.find(r => r.id === requestId);
+            if (request && request.status === 'approved') {
+                request.status = 'shipped';
+                request.shippedAt = new Date();
+                request.shippedBy = expediteData.currentUser.name;
+                
+                // Move to shipped requests
+                expediteData.shippedRequests = expediteData.shippedRequests || [];
+                expediteData.shippedRequests.push(request);
+                
+                // Remove from active requests
+                expediteData.requests = expediteData.requests.filter(r => r.id !== requestId);
+                
+                updateRequestsDisplay();
+                saveData(); // Save after shipping
+                addChatMessage('ai', `Order ${request.orderNumber} (Request ${requestId}) marked as shipped by ${expediteData.currentUser.name}. Usage tracking remains intact.`);
+            }
+        }
+
+        function updateLimitsDisplay() {
+            const limitsDisplay = document.getElementById('limitsDisplay');
+            limitsDisplay.innerHTML = '<h3>📊 Department Limits (Unpaid Only)</h3>';
+            
+            // Department limits (only showing unpaid limits)
+            Object.keys(expediteData.limits).forEach(type => {
+                const limits = expediteData.limits[type];
+                const usage = expediteData.usage[type];
+                const tracking = expediteData.departmentTracking[type];
+                
+                const limitItem = document.createElement('div');
+                limitItem.className = 'limit-item';
+                
+                const monthlyPercent = (usage.monthly / limits.monthly) * 100;
+                
+                limitItem.innerHTML = `
+                    <div>
+                        <strong>${type.charAt(0).toUpperCase() + type.slice(1)}</strong><br>
+                        <small>Unpaid: ${usage.monthly}/${limits.monthly} monthly | Paid: ${tracking.paid.monthly} monthly (unlimited)</small>
+                    </div>
+                    <div>
+                        <div class="limit-bar">
+                            <div class="limit-fill ${monthlyPercent > 80 ? 'danger' : monthlyPercent > 60 ? 'warning' : ''}" 
+                                 style="width: ${Math.min(monthlyPercent, 100)}%"></div>
+                        </div>
+                    </div>
+                `;
+                
+                limitsDisplay.appendChild(limitItem);
+            });
+            
+            // Individual submitter limits section
+            const submitterSection = document.createElement('div');
+            submitterSection.innerHTML = '<h3 style="margin-top: 20px;">👤 Individual Limits (Unpaid Only)</h3>';
+            limitsDisplay.appendChild(submitterSection);
+            
+            const submitterLimit = document.createElement('div');
+            submitterLimit.className = 'limit-item';
+            submitterLimit.innerHTML = `
+                <div>
+                    <strong>Per Person Unpaid Limit</strong><br>
+                    <small>Monthly: ${expediteData.submitterLimits.unpaid.monthly} | Quarterly: ${expediteData.submitterLimits.unpaid.quarterly}</small>
+                </div>
+                <div>
+                    <span style="color: #666; font-size: 0.85em;">Backend Managed</span>
+                </div>
+            `;
+            limitsDisplay.appendChild(submitterLimit);
+            
+            // Show top submitters with paid/unpaid breakdown
+            const submitterUsageArray = Object.entries(expediteData.submitterUsage)
+                .map(([email, usage]) => ({ 
+                    email, 
+                    totalMonthly: usage.paid.monthly + usage.unpaid.monthly,
+                    paidMonthly: usage.paid.monthly,
+                    unpaidMonthly: usage.unpaid.monthly,
+                    unpaidQuarterly: usage.unpaid.quarterly
+                }))
+                .sort((a, b) => b.totalMonthly - a.totalMonthly)
+                .slice(0, 5);
+                
+            if (submitterUsageArray.length > 0) {
+                const topSubmitters = document.createElement('div');
+                topSubmitters.innerHTML = '<h4 style="margin-top: 15px;">🔥 Top Submitters This Month</h4>';
+                limitsDisplay.appendChild(topSubmitters);
+                
+                submitterUsageArray.forEach(submitter => {
+                    const submitterItem = document.createElement('div');
+                    submitterItem.className = 'limit-item';
+                    const unpaidPercent = (submitter.unpaidMonthly / expediteData.submitterLimits.unpaid.monthly) * 100;
+                    
+                    submitterItem.innerHTML = `
+                        <div>
+                            <strong>${submitter.email.split('@')[0]}</strong><br>
+                            <small>Unpaid: ${submitter.unpaidMonthly}/${expediteData.submitterLimits.unpaid.monthly} | Paid: ${submitter.paidMonthly} | Total: ${submitter.totalMonthly}</small>
+                        </div>
+                        <div>
+                            <div class="limit-bar">
+                                <div class="limit-fill ${unpaidPercent > 80 ? 'danger' : unpaidPercent > 60 ? 'warning' : ''}" 
+                                     style="width: ${Math.min(unpaidPercent, 100)}%"></div>
+                            </div>
+                        </div>
+                    `;
+                    limitsDisplay.appendChild(submitterItem);
+                });
+            }
+            
+            // Add paid expedites summary
+            const paidSummary = document.createElement('div');
+            paidSummary.innerHTML = '<h4 style="margin-top: 15px;">💰 Paid Expedites Summary</h4>';
+            limitsDisplay.appendChild(paidSummary);
+            
+            const totalPaid = Object.values(expediteData.departmentTracking)
+                .reduce((sum, dept) => sum + dept.paid.monthly, 0);
+            const totalUnpaid = Object.values(expediteData.departmentTracking)
+                .reduce((sum, dept) => sum + dept.unpaid.monthly, 0);
+            
+            const summaryItem = document.createElement('div');
+            summaryItem.className = 'limit-item';
+            summaryItem.innerHTML = `
+                <div>
+                    <strong>This Month's Activity</strong><br>
+                    <small>Total Paid: ${totalPaid} | Total Unpaid: ${totalUnpaid} | Revenue Potential: ${totalPaid} paid expedites</small>
+                </div>
+                <div style="color: #27ae60; font-weight: bold;">
+                    ${totalPaid > 0 ? '📈' : '📊'}
+                </div>
+            `;
+            limitsDisplay.appendChild(summaryItem);
+
+            // Add data management section
+            const dataSection = document.createElement('div');
+            dataSection.innerHTML = '<h4 style="margin-top: 15px;">💾 Data Management</h4>';
+            limitsDisplay.appendChild(dataSection);
+            
+            const dataItem = document.createElement('div');
+            dataItem.className = 'limit-item';
+            dataItem.innerHTML = `
+                <div>
+                    <strong>Last Saved</strong><br>
+                    <small>${expediteData.lastSaved ? new Date(expediteData.lastSaved).toLocaleString() : 'Never'}</small>
+                </div>
+                <div>
+                    <button onclick="exportData()" style="background: #3498db; color: white; border: none; padding: 5px 10px; border-radius: 5px; margin-right: 5px; cursor: pointer; font-size: 12px;">📥 Export</button>
+                    <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
+                    <button onclick="document.getElementById('importFile').click()" style="background: #27ae60; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px;">📤 Import</button>
+                </div>
+            `;
+            limitsDisplay.appendChild(dataItem);
+        }
+
+        function updateRequestsDisplay() {
+            const pendingDiv = document.getElementById('pendingRequests');
+            const recentDiv = document.getElementById('recentDecisions');
+            
+            const pendingRequests = expediteData.requests.filter(r => r.status === 'pending');
+            const recentDecisions = expediteData.requests.filter(r => r.status !== 'pending' && r.status !== 'shipped').slice(-10);
+            
+            pendingDiv.innerHTML = pendingRequests.length === 0 ? '<p>No pending requests</p>' : 
+                pendingRequests.map(request => `
+                    <div class="request-item pending">
+                        <div class="request-header">
+                            <span class="request-id">${request.id}</span>
+                            <span class="request-status status-pending">Pending</span>
+                        </div>
+                        <p><strong>Order:</strong> ${request.orderNumber} | <strong>Type:</strong> ${request.expediteType.toUpperCase()}${request.paymentAmount ? ` (${request.paymentAmount.toFixed(2)})` : ''} | <strong>Departments:</strong> ${request.departments.join(', ')}</p>
+                        <p><strong>On-Site Date:</strong> ${new Date(request.requestedOnSiteDate).toLocaleDateString()} | <strong>Shipping:</strong> ${request.shippingMethod.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</p>
+                        <p><strong>Requested by:</strong> ${request.requestedBy} (${request.requesterEmail})</p>
+                        <p><strong>Justification:</strong> ${request.justification}</p>
+                        <p><strong>AI Analysis:</strong> ${request.aiAnalysis.recommendation}</p>
+                        <p><strong>Details:</strong> ${request.aiAnalysis.reasoning}</p>
+                        <div style="margin-top: 10px;">
+                            ${hasApprovalPermissions() ? `
+                                <button class="btn btn-success" onclick="approveRequest('${request.id}')">✅ Approve</button>
+                                <button class="btn btn-danger" onclick="denyRequest('${request.id}')">❌ Deny</button>
+                            ` : `
+                                <button class="btn btn-success" onclick="approveRequest('${request.id}')" style="opacity: 0.6;">✅ Approve (Login Required)</button>
+                                <button class="btn btn-danger" onclick="denyRequest('${request.id}')" style="opacity: 0.6;">❌ Deny (Login Required)</button>
+                            `}
+                            <button class="btn btn-warning" onclick="showSubmitterHistory('${request.requesterEmail}')" style="padding: 8px 12px; font-size: 0.85em;">📊 Submitter History</button>
+                        </div>
+                    </div>
+                `).join('');
+            
+            recentDiv.innerHTML = recentDecisions.length === 0 ? '<p>No recent decisions</p>' :
+                recentDecisions.map(request => `
+                    <div class="request-item ${request.status}">
+                        <div class="request-header">
+                            <span class="request-id">${request.id}</span>
+                            <span class="request-status status-${request.status}">${request.status}</span>
+                        </div>
+                        <p><strong>Order:</strong> ${request.orderNumber} | <strong>Type:</strong> ${request.expediteType.toUpperCase()}${request.paymentAmount ? ` (${request.paymentAmount.toFixed(2)})` : ''} | <strong>Departments:</strong> ${request.departments.join(', ')}</p>
+                        <p><strong>On-Site Date:</strong> ${new Date(request.requestedOnSiteDate).toLocaleDateString()} | <strong>Shipping:</strong> ${request.shippingMethod.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} | <strong>Requester:</strong> ${request.requestedBy} | <strong>Decided:</strong> ${request.decidedAt?.toLocaleDateString()}</p>
+                        ${request.approvedBy || request.deniedBy ? `<p><strong>Decision by:</strong> ${request.approvedBy || request.deniedBy}</p>` : ''}
+                        ${request.status === 'approved' ? `
+                            <div style="margin-top: 8px; display: flex; gap: 10px;">
+                                <button class="btn" onclick="markAsShipped('${request.id}')" style="padding: 6px 12px; font-size: 0.85em; background: linear-gradient(135deg, #8e44ad 0%, #9b59b6 100%); ${!hasApprovalPermissions() ? 'opacity: 0.6;' : ''}">📦 Mark as Shipped${!hasApprovalPermissions() ? ' (Login Required)' : ''}</button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `).join('');
+            
+            // Update shipped button counter safely
+            const shippedButton = document.querySelector('button[onclick="showShippedRequests()"]');
+            if (shippedButton) {
+                shippedButton.innerHTML = `🚚 View Shipped (${expediteData.shippedRequests?.length || 0})`;
+            }
+        }
+
+        function showShippedRequests() {
+            if (!expediteData.shippedRequests || expediteData.shippedRequests.length === 0) {
+                alert('No shipped requests yet.');
+                return;
+            }
+            
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+                background: rgba(0,0,0,0.7); z-index: 1000; display: flex; 
+                justify-content: center; align-items: center;
+            `;
+            
+            const content = document.createElement('div');
+            content.style.cssText = `
+                background: white; border-radius: 15px; padding: 30px; 
+                max-width: 80%; max-height: 80%; overflow-y: auto;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            `;
+            
+            content.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="margin: 0; color: #2c3e50;">🚚 Shipped Expedites (${expediteData.shippedRequests.length})</h2>
+                    <button onclick="this.closest('.modal').remove()" style="background: #e74c3c; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer;">×</button>
+                </div>
+                <div style="max-height: 400px; overflow-y: auto;">
+                    ${expediteData.shippedRequests.slice(-20).reverse().map(request => `
+                        <div style="background: #f8f9fa; border-left: 4px solid #8e44ad; padding: 15px; margin-bottom: 10px; border-radius: 8px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <strong style="color: #2c3e50;">${request.id}</strong>
+                                <span style="color: #8e44ad; font-weight: 600;">SHIPPED</span>
+                            </div>
+                            <p><strong>Order:</strong> ${request.orderNumber} | <strong>Type:</strong> ${request.expediteType.toUpperCase()}${request.paymentAmount ? ` (${request.paymentAmount.toFixed(2)})` : ''} | <strong>Departments:</strong> ${request.departments.join(', ')}</p>
+                            <p><strong>On-Site Date:</strong> ${new Date(request.requestedOnSiteDate).toLocaleDateString()} | <strong>Shipping:</strong> ${request.shippingMethod.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} | <strong>Shipped:</strong> ${request.shippedAt?.toLocaleDateString()}</p>
+                        </div>
+                    `).join('')}
+                </div>
+                <div style="margin-top: 15px; text-align: center;">
+                    <small style="color: #666;">Showing last 20 shipped requests. Usage tracking for all shipped requests remains active.</small>
+                </div>
+            `;
+            
+            modal.className = 'modal';
+            modal.appendChild(content);
+            document.body.appendChild(modal);
+            
+            // Close modal when clicking outside
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.remove();
+            });
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            addChatMessage('user', message);
+            input.value = '';
+            
+            // Simulate AI response
+            setTimeout(() => {
+                const response = generateAIResponse(message);
+                addChatMessage('ai', response);
+            }, 1000);
+        }
+
+        function addChatMessage(sender, message) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            messageDiv.innerHTML = `<strong>${sender === 'user' ? 'You' : 'AI Assistant'}:</strong> ${message}`;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function generateAIResponse(message) {
+            const lowerMessage = message.toLowerCase();
+            
+            if (lowerMessage.includes('limit') || lowerMessage.includes('usage')) {
+                return analyzeUsageLimits();
+            } else if (lowerMessage.includes('pattern') || lowerMessage.includes('trend')) {
+                return analyzePatterns();
+            } else if (lowerMessage.includes('recommend') || lowerMessage.includes('suggest')) {
+                return provideRecommendations();
+            } else if (lowerMessage.includes('paid') || lowerMessage.includes('revenue')) {
+                return analyzePaidExpedites();
+            } else if (lowerMessage.includes('help')) {
+                return "I can help you with: analyzing usage patterns, checking limits, providing approval recommendations, reviewing request trends, tracking paid vs unpaid expedites, and suggesting policy adjustments. What would you like to know?";
+            } else {
+                return "I understand you're asking about expedite management. I can analyze patterns, check limits, track paid vs unpaid expedites, and provide recommendations. Could you be more specific about what you'd like to know?";
+            }
+        }
+
+        function analyzeUsageLimits() {
+            let analysis = "Current usage analysis:\n";
+            Object.keys(expediteData.usage).forEach(type => {
+                const usage = expediteData.usage[type];
+                const limits = expediteData.limits[type];
+                const tracking = expediteData.departmentTracking[type];
+                const monthlyPercent = ((usage.monthly / limits.monthly) * 100).toFixed(1);
+                analysis += `${type}: ${monthlyPercent}% of unpaid limit used (${usage.monthly}/${limits.monthly}), ${tracking.paid.monthly} paid this month. `;
+                if (monthlyPercent > 80) analysis += "⚠️ Approaching unpaid limit! ";
+            });
+            return analysis;
+        }
+
+        function analyzePatterns() {
+            const total = expediteData.requests.length;
+            const approved = expediteData.requests.filter(r => r.status === 'approved').length;
+            const denied = expediteData.requests.filter(r => r.status === 'denied').length;
+            const pending = expediteData.requests.filter(r => r.status === 'pending').length;
+            const paid = expediteData.requests.filter(r => r.expediteType === 'paid').length;
+            const unpaid = expediteData.requests.filter(r => r.expediteType === 'unpaid').length;
+            
+            return `Request patterns: ${total} total (${paid} paid, ${unpaid} unpaid). Status: ${approved} approved, ${denied} denied, ${pending} pending. Most common department: ${getMostCommonDepartment()}. Paid conversion rate: ${total > 0 ? ((paid/total)*100).toFixed(1) : 0}%.`;
+        }
+
+        function getMostCommonDepartment() {
+            const deptCounts = {};
+            expediteData.requests.forEach(r => {
+                r.departments.forEach(dept => {
+                    deptCounts[dept] = (deptCounts[dept] || 0) + 1;
+                });
+            });
+            return Object.keys(deptCounts).reduce((a, b) => deptCounts[a] > deptCounts[b] ? a : b, 'none');
+        }
+
+        function provideRecommendations() {
+            const pending = expediteData.requests.filter(r => r.status === 'pending');
+            if (pending.length === 0) {
+                return "No pending requests to review. Consider analyzing paid vs unpaid trends, or adjusting limits if departments are frequently hitting capacity.";
+            }
+            
+            const paidPending = pending.filter(r => r.expediteType === 'paid');
+            const unpaidPending = pending.filter(r => r.expediteType === 'unpaid');
+            return `I recommend prioritizing ${paidPending.length} paid requests first (revenue generating), then reviewing ${unpaidPending.length} unpaid requests against limits. Would you like me to analyze specific requests?`;
+        }
+
+        function analyzePaidExpedites() {
+            const totalPaid = Object.values(expediteData.departmentTracking)
+                .reduce((sum, dept) => sum + dept.paid.monthly, 0);
+            const totalUnpaid = Object.values(expediteData.departmentTracking)
+                .reduce((sum, dept) => sum + dept.unpaid.monthly, 0);
+            
+            // Calculate total revenue from paid expedites
+            const totalRevenue = expediteData.requests
+                .filter(r => r.expediteType === 'paid' && r.paymentAmount)
+                .reduce((sum, r) => sum + r.paymentAmount, 0);
+            
+            return `Paid expedite analysis: ${totalPaid} paid expedites this month vs ${totalUnpaid} unpaid. Total revenue generated: ${totalRevenue.toFixed(2)}. Revenue opportunity is ${totalPaid} units. Consider promoting paid expedites when unpaid limits are reached to maintain service levels while generating revenue.`;
+        }
+
+        function showSubmitterHistory(email) {
+            const submitterRequests = expediteData.requests.filter(r => r.requesterEmail === email);
+            const shippedSubmitterRequests = expediteData.shippedRequests?.filter(r => r.requesterEmail === email) || [];
+            const allSubmitterRequests = [...submitterRequests, ...shippedSubmitterRequests];
+            
+            const usage = expediteData.submitterUsage[email] || { 
+                paid: { monthly: 0, quarterly: 0, yearly: 0 },
+                unpaid: { monthly: 0, quarterly: 0, yearly: 0 }
+            };
+            
+            const approved = allSubmitterRequests.filter(r => r.status === 'approved' || r.status === 'shipped').length;
+            const denied = allSubmitterRequests.filter(r => r.status === 'denied').length;
+            const pending = allSubmitterRequests.filter(r => r.status === 'pending').length;
+            const shipped = allSubmitterRequests.filter(r => r.status === 'shipped').length;
+            
+            const paidRequests = allSubmitterRequests.filter(r => r.expediteType === 'paid').length;
+            const unpaidRequests = allSubmitterRequests.filter(r => r.expediteType === 'unpaid').length;
+            
+            const historyMessage = `
+Submitter: ${email}
+Total Requests: ${allSubmitterRequests.length} (${paidRequests} paid, ${unpaidRequests} unpaid)
+Status: ${approved} approved | ${denied} denied | ${pending} pending | ${shipped} shipped
+Current Usage: 
+  - Unpaid: ${usage.unpaid.monthly}/${expediteData.submitterLimits.unpaid.monthly} monthly
+  - Paid: ${usage.paid.monthly} monthly (unlimited)
+Approval Rate: ${allSubmitterRequests.length > 0 ? ((approved/allSubmitterRequests.length)*100).toFixed(1) : 0}%
+            `;
+            
+            addChatMessage('ai', historyMessage);
+        }
+
+        function configureChatWebhook() {
+            if (!requiresAuthentication('configure')) {
+                return;
+            }
+            
+            const currentUrl = expediteData.chatWebhookUrl === 'https://chat.googleapis.com/v1/spaces/YOUR_SPACE_ID/messages?key=YOUR_KEY&token=YOUR_TOKEN' 
+                ? '' 
+                : expediteData.chatWebhookUrl;
+            
+            const newUrl = prompt(
+                'Configure Google Chat Webhook:\n\n' +
+                '1. Create a Google Chat space called "Production Leaders"\n' +
+                '2. Add all production leaders to the space\n' +
+                '3. Click space name → Apps & integrations → Add webhooks\n' +
+                '4. Name: "Expedite Notifications"\n' +
+                '5. Copy the webhook URL and paste below:\n\n' +
+                'Current URL:',
+                currentUrl
+            );
+            
+            if (newUrl && newUrl.trim() && newUrl.startsWith('https://chat.googleapis.com/')) {
+                expediteData.chatWebhookUrl = newUrl.trim();
+                addChatMessage('ai', `Google Chat webhook configured successfully by ${expediteData.currentUser.name}! Production leaders will now receive automatic notifications for all expedite requests.`);
+            } else if (newUrl !== null) {
+                alert('Please enter a valid Google Chat webhook URL starting with "https://chat.googleapis.com/"');
+            }
+        }
+
+        function configureEmailNotifications() {
+            if (!requiresAuthentication('configure-email')) {
+                return;
+            }
+            
+            const currentlyEnabled = expediteData.emailConfig.enabled;
+            
+            const enableEmail = confirm(
+                `Email Notifications Configuration\n\n` +
+                `Currently: ${currentlyEnabled ? 'ENABLED' : 'DISABLED'}\n\n` +
+                `Email notifications send automatic updates to submitters when their expedite requests are:\n` +
+                `• Submitted (confirmation)\n` +
+                `• Approved or Denied\n` +
+                `• Shipped\n\n` +
+                `Would you like to ${currentlyEnabled ? 'DISABLE' : 'ENABLE'} email notifications?`
+            );
+            
+            if (enableEmail) {
+                expediteData.emailConfig.enabled = !currentlyEnabled;
+                const status = expediteData.emailConfig.enabled ? 'ENABLED' : 'DISABLED';
+                addChatMessage('ai', `📧 Email notifications ${status} by ${expediteData.currentUser.name}. ${expediteData.emailConfig.enabled ? 'Submitters will now receive email updates for all expedite actions.' : 'Email notifications have been turned off.'}`);
+                
+                if (expediteData.emailConfig.enabled) {
+                    addChatMessage('ai', `📋 Email Configuration:\n• From: ${expediteData.emailConfig.fromName} <${expediteData.emailConfig.fromEmail}>\n• SMTP: ${expediteData.emailConfig.smtpServer}:${expediteData.emailConfig.smtpPort}\n\n(Configure these settings in the system configuration)`);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
