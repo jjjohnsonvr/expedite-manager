@@ -321,6 +321,9 @@
             }
         }
     </style>
+    <!-- Firebase SDKs - v8 (More Reliable) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 <body>
     <div class="container">
@@ -471,7 +474,36 @@
     </div>
 
     <script>
-        // Global data storage with persistence
+        // Wait for Firebase to load, then initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if Firebase is loaded
+            if (typeof firebase === 'undefined') {
+                alert('Firebase failed to load. Please check your internet connection and refresh the page.');
+                return;
+            }
+
+            // Firebase Configuration
+            const firebaseConfig = {
+                apiKey: "AIzaSyCJDRv7INFiDSLrRNNwPni66cSXLJgYwUA",
+                authDomain: "expedite-manager-786ce.firebaseapp.com",
+                databaseURL: "https://expedite-manager-786ce-default-rtdb.firebaseio.com",
+                projectId: "expedite-manager-786ce",
+                storageBucket: "expedite-manager-786ce.firebasestorage.app",
+                messagingSenderId: "988810185020",
+                appId: "1:988810185020:web:0f45821caeb31ddd147639"
+            };
+
+            // Initialize Firebase
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+            const database = firebase.database();
+
+            // Initialize the application after Firebase is ready
+            initializeApp(database);
+        });
+
+        // Global data storage with Firebase integration
         let expediteData = {
             requests: [],
             shippedRequests: [],
@@ -529,33 +561,129 @@
                 shipping: { paid: { monthly: 0, quarterly: 0, yearly: 0 }, unpaid: { monthly: 0, quarterly: 0, yearly: 0 } },
                 cnc: { paid: { monthly: 0, quarterly: 0, yearly: 0 }, unpaid: { monthly: 0, quarterly: 0, yearly: 0 } }
             },
-            lastSaved: null
+            lastSaved: null,
+            isOnline: true
         };
 
-        // Data persistence functions
+        let database; // Will be set when Firebase initializes
+
+        // Firebase data persistence functions
         function saveData() {
+            if (!database || !expediteData.isOnline) {
+                console.log('Offline or database not ready - data will sync when connection restored');
+                return;
+            }
+            
             try {
                 expediteData.lastSaved = new Date().toISOString();
-                localStorage.setItem('expediteData', JSON.stringify(expediteData));
+                database.ref('expediteData').set(expediteData)
+                    .then(() => {
+                        console.log('Data saved to Firebase successfully');
+                        showStatus('💾 Data saved', 'success');
+                    })
+                    .catch((error) => {
+                        console.error('Firebase save error:', error);
+                        showStatus('❌ Save failed: ' + error.message, 'error');
+                    });
             } catch (error) {
                 console.error('Failed to save data:', error);
+                showStatus('❌ Save error', 'error');
             }
         }
 
         function loadData() {
-            try {
-                const saved = localStorage.getItem('expediteData');
-                if (saved) {
-                    const parsedData = JSON.parse(saved);
-                    // Merge saved data with defaults to handle new properties
-                    expediteData = { ...expediteData, ...parsedData };
-                    console.log('Data loaded successfully. Last saved:', expediteData.lastSaved);
-                    return true;
+            return new Promise((resolve) => {
+                if (!database) {
+                    resolve(false);
+                    return;
                 }
-            } catch (error) {
-                console.error('Failed to load data:', error);
+
+                database.ref('expediteData').once('value')
+                    .then((snapshot) => {
+                        const data = snapshot.val();
+                        if (data) {
+                            // Merge Firebase data with local defaults
+                            expediteData = { ...expediteData, ...data };
+                            console.log('Data loaded from Firebase. Last saved:', expediteData.lastSaved);
+                            showStatus('🔄 Data synchronized', 'success');
+                            resolve(true);
+                        } else {
+                            console.log('No existing data in Firebase, using defaults');
+                            // Save initial data to Firebase
+                            saveData();
+                            resolve(false);
+                        }
+                    })
+                    .catch((error) => {
+                        console.error('Firebase load error:', error);
+                        expediteData.isOnline = false;
+                        showStatus('🔴 Offline mode - changes will sync when connected', 'warning');
+                        resolve(false);
+                    });
+            });
+        }
+
+        function setupRealtimeSync() {
+            if (!database) return;
+
+            // Listen for changes in Firebase
+            database.ref('expediteData').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data && data.lastSaved !== expediteData.lastSaved) {
+                    // Data was updated by another user
+                    expediteData = { ...expediteData, ...data };
+                    updateLimitsDisplay();
+                    updateRequestsDisplay();
+                    addChatMessage('ai', '🔄 Data updated by another user - display refreshed');
+                    showStatus('🔄 Live update received', 'info');
+                }
+            });
+
+            // Monitor connection status
+            database.ref('.info/connected').on('value', (snapshot) => {
+                if (snapshot.val() === true) {
+                    expediteData.isOnline = true;
+                    showStatus('🟢 Connected to Firebase', 'success');
+                } else {
+                    expediteData.isOnline = false;
+                    showStatus('🔴 Connection lost - working offline', 'warning');
+                }
+            });
+        }
+
+        function showStatus(message, type = 'info') {
+            // Create or update status indicator
+            let statusDiv = document.getElementById('connectionStatus');
+            if (!statusDiv) {
+                statusDiv = document.createElement('div');
+                statusDiv.id = 'connectionStatus';
+                statusDiv.style.cssText = `
+                    position: fixed; top: 10px; right: 10px; z-index: 1000;
+                    padding: 8px 15px; border-radius: 5px; font-size: 14px;
+                    font-weight: 600; color: white; transition: all 0.3s ease;
+                `;
+                document.body.appendChild(statusDiv);
             }
-            return false;
+
+            const colors = {
+                success: '#27ae60',
+                error: '#e74c3c', 
+                warning: '#f39c12',
+                info: '#3498db'
+            };
+
+            statusDiv.style.backgroundColor = colors[type] || colors.info;
+            statusDiv.textContent = message;
+            
+            // Auto-hide after 3 seconds for success/info messages
+            if (type === 'success' || type === 'info') {
+                setTimeout(() => {
+                    if (statusDiv.textContent === message) {
+                        statusDiv.style.opacity = '0';
+                        setTimeout(() => statusDiv.remove(), 300);
+                    }
+                }, 3000);
+            }
         }
 
         function exportData() {
@@ -567,6 +695,7 @@
             link.download = `expedite_data_${new Date().toISOString().slice(0, 10)}.json`;
             link.click();
             URL.revokeObjectURL(url);
+            showStatus('📥 Data exported successfully', 'success');
         }
 
         function importData(event) {
@@ -577,31 +706,82 @@
                     try {
                         const importedData = JSON.parse(e.target.result);
                         expediteData = { ...expediteData, ...importedData };
-                        saveData();
+                        saveData(); // This will trigger real-time update for all users
                         updateLimitsDisplay();
                         updateRequestsDisplay();
-                        addChatMessage('ai', 'Data imported successfully!');
+                        addChatMessage('ai', 'Data imported successfully and synced to all users!');
+                        showStatus('📤 Data imported and synced', 'success');
                     } catch (error) {
                         alert('Error importing data: ' + error.message);
+                        showStatus('❌ Import failed', 'error');
                     }
                 };
                 reader.readAsText(file);
             }
         }
 
-        // Payment field toggle function
-        document.getElementById('expediteType').addEventListener('change', function() {
-            const paymentGroup = document.getElementById('paymentAmountGroup');
-            const paymentField = document.getElementById('paymentAmount');
+        // Main initialization function
+        async function initializeApp(db) {
+            database = db; // Set the global database reference
             
-            if (this.value === 'paid') {
-                paymentGroup.style.display = 'block';
-                paymentField.required = true;
+            // Show loading status
+            showStatus('🔄 Connecting to Firebase...', 'info');
+            
+            // Load data from Firebase and set up real-time sync
+            const dataLoaded = await loadData();
+            setupRealtimeSync();
+            
+            if (dataLoaded) {
+                addChatMessage('ai', `Welcome back! Data loaded from Firebase. Last saved: ${new Date(expediteData.lastSaved).toLocaleDateString()}.`);
             } else {
-                paymentGroup.style.display = 'none';
-                paymentField.required = false;
-                paymentField.value = '';
+                addChatMessage('ai', 'Welcome! This is a fresh installation. All users will see the same data in real-time.');
             }
+            
+            updateLimitsDisplay();
+            updateRequestsDisplay();
+            
+            document.getElementById('expediteForm').addEventListener('submit', handleFormSubmit);
+            document.getElementById('chatInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendChatMessage();
+                }
+            });
+
+            // Auto-save every 60 seconds (less frequent since Firebase handles real-time sync)
+            setInterval(() => {
+                if (expediteData.isOnline) {
+                    saveData();
+                }
+            }, 60000);
+            
+            // Save data when page unloads
+            window.addEventListener('beforeunload', () => {
+                if (expediteData.isOnline && database) {
+                    saveData();
+                }
+            });
+        }
+
+        // Payment field toggle function
+        document.addEventListener('DOMContentLoaded', function() {
+            // This will be called after Firebase initialization
+            setTimeout(() => {
+                if (document.getElementById('expediteType')) {
+                    document.getElementById('expediteType').addEventListener('change', function() {
+                        const paymentGroup = document.getElementById('paymentAmountGroup');
+                        const paymentField = document.getElementById('paymentAmount');
+                        
+                        if (this.value === 'paid') {
+                            paymentGroup.style.display = 'block';
+                            paymentField.required = true;
+                        } else {
+                            paymentGroup.style.display = 'none';
+                            paymentField.required = false;
+                            paymentField.value = '';
+                        }
+                    });
+                }
+            }, 1000);
         });
 
         // Authentication and access control functions
@@ -722,11 +902,18 @@
         }
 
         // Initialize the application
-        document.addEventListener('DOMContentLoaded', function() {
-            // Load saved data first
-            const dataLoaded = loadData();
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Show loading status
+            showStatus('🔄 Connecting to Firebase...', 'info');
+            
+            // Load data from Firebase and set up real-time sync
+            const dataLoaded = await loadData();
+            setupRealtimeSync();
+            
             if (dataLoaded) {
-                addChatMessage('ai', `Welcome back! Data restored from ${new Date(expediteData.lastSaved).toLocaleDateString()}.`);
+                addChatMessage('ai', `Welcome back! Data loaded from Firebase. Last saved: ${new Date(expediteData.lastSaved).toLocaleDateString()}.`);
+            } else {
+                addChatMessage('ai', 'Welcome! This is a fresh installation. All users will see the same data in real-time.');
             }
             
             updateLimitsDisplay();
@@ -739,11 +926,21 @@
                 }
             });
 
-            // Auto-save every 30 seconds
-            setInterval(saveData, 30000);
+            // Auto-save every 60 seconds (less frequent since Firebase handles real-time sync)
+            setInterval(() => {
+                if (expediteData.isOnline) {
+                    saveData();
+                }
+            }, 60000);
             
             // Save data when page unloads
-            window.addEventListener('beforeunload', saveData);
+            window.addEventListener('beforeunload', () => {
+                if (expediteData.isOnline) {
+                    // Use sendBeacon for reliable save on page unload
+                    const dataStr = JSON.stringify(expediteData);
+                    navigator.sendBeacon('https://expedite-manager-786ce-default-rtdb.firebaseio.com/expediteData.json', dataStr);
+                }
+            });
         });
 
         function handleFormSubmit(e) {
@@ -1104,15 +1301,15 @@
 
             // Add data management section
             const dataSection = document.createElement('div');
-            dataSection.innerHTML = '<h4 style="margin-top: 15px;">💾 Data Management</h4>';
+            dataSection.innerHTML = '<h4 style="margin-top: 15px;">🔥 Firebase Status</h4>';
             limitsDisplay.appendChild(dataSection);
             
             const dataItem = document.createElement('div');
             dataItem.className = 'limit-item';
             dataItem.innerHTML = `
                 <div>
-                    <strong>Last Saved</strong><br>
-                    <small>${expediteData.lastSaved ? new Date(expediteData.lastSaved).toLocaleString() : 'Never'}</small>
+                    <strong>Connection Status</strong><br>
+                    <small>${expediteData.isOnline ? '🟢 Connected' : '🔴 Offline'} | Last Saved: ${expediteData.lastSaved ? new Date(expediteData.lastSaved).toLocaleString() : 'Never'}</small>
                 </div>
                 <div>
                     <button onclick="exportData()" style="background: #3498db; color: white; border: none; padding: 5px 10px; border-radius: 5px; margin-right: 5px; cursor: pointer; font-size: 12px;">📥 Export</button>
